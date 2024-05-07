@@ -62,7 +62,6 @@ def save_pages_to_pdf(pdf_path, pages_by_city, output_directory):
                 for page_num in pages:
                     pdf_document.insert_pdf(original_pdf, from_page=page_num, to_page=page_num)
                 pdf_document.save(output_pdf_path)
-                pdf_document.close()
 
 
 def select_file():
