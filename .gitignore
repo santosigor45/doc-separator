@@ -156,6 +156,7 @@ cython_debug/
 
 FORMATADOR.xlsx
 funcionarios_cidade.txt
+excel_path
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

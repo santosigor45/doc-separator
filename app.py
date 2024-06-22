@@ -1,21 +1,43 @@
-import os, fitz, subprocess
+import os
+import fitz
+import subprocess
+import numpy as np
+import pandas as pd
+from pathlib import Path
 from fuzzywuzzy import fuzz
 import tkinter as tk
 from tkinter import filedialog, ttk, messagebox
 from ttkthemes import ThemedTk
 
 
+def replace_all(text, dic):
+    for i, j in dic.items():
+        text = text.replace(i, j)
+    return text
+
+
 def load_employees_cities(file_path):
     # Load employee and their associated city from file
     employees_cities = {}
-    with open(file_path, 'r', encoding='utf-8') as file:
-        for line in file:
-            data = line.strip().split(',')
-            employee = data[0].strip()
-            city = data[1].strip()
-            if len(data) > 2 and city.lower() == 'pinda':
-                city = f"{city}_{data[2].strip()}"
-            employees_cities[employee] = city
+    excel_file = pd.read_excel(
+        io=file_path,
+        sheet_name="GERAL",
+        usecols=["FUNCIONÁRIO", "CIDADE", "SITUAÇÃO", "REGIÃO"],
+    )
+    excel_file = excel_file[(excel_file['SITUAÇÃO'] == 'REGISTRADO')]
+    excel_file = excel_file.drop('SITUAÇÃO', axis=1)
+    excel_file = excel_file.drop(excel_file.index[0])
+    excel_file = excel_file.replace(np.nan, '', regex=True)
+
+    lists = excel_file.values.tolist()
+
+    for ls in lists:
+        employee = ls[0].strip()
+        city = ls[1].strip()
+        if len(ls) > 2 and ls[2] != '' and regions_checkbox.state() == ('selected',):
+            region = replace_all(ls[2], {' ': '_', '/': ', '}).strip()
+            city = f"{city} - {region}"
+        employees_cities[employee] = city
     return employees_cities
 
 
@@ -57,11 +79,20 @@ def save_pages_to_pdf(pdf_path, pages_by_city, output_directory):
     base_path = os.path.splitext(os.path.basename(pdf_path))[0]
     for city, pages in pages_by_city.items():
         if pages:
-            output_pdf_path = os.path.join(output_directory, f'{city.strip().replace(" ", "_")}.pdf')
+            output_pdf_path = os.path.join(output_directory, f'{city.strip()}.pdf')
             with fitz.open(pdf_path) as original_pdf, fitz.open() as pdf_document:
                 for page_num in pages:
                     pdf_document.insert_pdf(original_pdf, from_page=page_num, to_page=page_num)
-                pdf_document.save(output_pdf_path)
+
+                if len(city.split(' - ')) == 2:
+                    city_name = city.split(' - ')[0]
+                    new_folder = os.path.join(output_directory, city_name)
+                    if not os.path.exists(new_folder):
+                        os.makedirs(new_folder)
+                    pdf_output_path = os.path.join(new_folder, f'{city.strip().replace(f"{city_name} - ", "")}.pdf')
+                    pdf_document.save(pdf_output_path)
+                else:
+                    pdf_document.save(output_pdf_path)
 
 
 def select_file():
@@ -91,7 +122,7 @@ def process_pdf():
         messagebox.showwarning("Aviso", "Por favor, selecione o arquivo PDF e o diretório de saída.")
         return
     pdf_path, output_directory = file_entry.get(), output_entry.get()
-    employees_cities = load_employees_cities("funcionarios_cidade.txt")
+    employees_cities = load_employees_cities(os.path.abspath(Path('excel_path').read_bytes()).decode('utf-8'))
     pdfregion = (98, 61, 312, 70)
     pages_by_city, not_found_names = separate_pages_by_city(pdf_path, employees_cities, pdfregion)
     save_pages_to_pdf(pdf_path, pages_by_city, output_directory)
@@ -113,6 +144,7 @@ file_button = ttk.Button(root, text="Selecionar Arquivo", command=select_file)
 output_label = ttk.Label(root, text="Diretório de Saída:")
 output_entry = ttk.Entry(root, width=50)
 output_button = ttk.Button(root, text="Selecionar Diretório", command=select_output_directory)
+regions_checkbox = ttk.Checkbutton(root, text="Separar por regiões?")
 process_button = ttk.Button(root, text="Processar PDF", command=process_pdf)
 file_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
 file_entry.grid(row=0, column=1, padx=10, pady=10)
@@ -120,5 +152,6 @@ file_button.grid(row=0, column=2, padx=10, pady=10)
 output_label.grid(row=1, column=0, padx=10, pady=10, sticky="w")
 output_entry.grid(row=1, column=1, padx=10, pady=10)
 output_button.grid(row=1, column=2, padx=10, pady=10)
+regions_checkbox.grid(row=2, column=2, columnspan=1, padx=10, pady=10)
 process_button.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
 root.mainloop()
