@@ -11,6 +11,7 @@ from ttkthemes import ThemedTk
 
 
 def replace_all(text, dic):
+    # A function to replace all passed characters
     for i, j in dic.items():
         text = text.replace(i, j)
     return text
@@ -44,7 +45,7 @@ def load_employees_cities(file_path):
 def extract_text_from_pdf(pdf_path, region):
     # Extract text from specified region in PDF pages
     pdf_document = fitz.open(pdf_path)
-    text_by_page = [page.get_text("text", clip=fitz.Rect(*region)).split("\n") for page in pdf_document]
+    text_by_page = [page.get_text("text", clip=fitz.Rect(*region)).split("\n")[0] for page in pdf_document]
     pdf_document.close()
     return text_by_page
 
@@ -67,7 +68,7 @@ def separate_pages_by_city(pdf_path, employees_cities, pdfregion):
     pages_by_city = {city: [] for city in set(employees_cities.values())}
     found_names = set()
     for page_num, text in enumerate(text_by_page):
-        matched_name = find_matching_employee_name(employees_cities.keys(), text)
+        matched_name = find_matching_employee_name(employees_cities.keys(), text.split("\n"))
         if matched_name:
             found_names.add(matched_name)
             pages_by_city[employees_cities[matched_name]].append(page_num)
@@ -76,7 +77,7 @@ def separate_pages_by_city(pdf_path, employees_cities, pdfregion):
     only_cities = []
     for city in set(employees_cities.values()):
         only_cities.append(city.split(' - ')[0])
-    nfn_by_city = {city: [] for city in set(only_cities)}
+    nfn_by_city = {city: [] for city in sorted(set(only_cities))}
     for city in nfn_by_city.keys():
         for name in not_found_names:
             if city == employees_cities[name].split(' - ')[0]:
