@@ -71,7 +71,18 @@ def separate_pages_by_city(pdf_path, employees_cities, pdfregion):
         if matched_name:
             found_names.add(matched_name)
             pages_by_city[employees_cities[matched_name]].append(page_num)
-    return pages_by_city, set(employees_cities.keys()) - found_names
+
+    not_found_names = sorted(set(employees_cities.keys()) - found_names)
+    only_cities = []
+    for city in set(employees_cities.values()):
+        only_cities.append(city.split(' - ')[0])
+    nfn_by_city = {city: [] for city in set(only_cities)}
+    for city in nfn_by_city.keys():
+        for name in not_found_names:
+            if city == employees_cities[name].split(' - ')[0]:
+                nfn_by_city[city].append(name)
+
+    return pages_by_city, nfn_by_city
 
 
 def save_pages_to_pdf(pdf_path, pages_by_city, output_directory):
@@ -124,10 +135,18 @@ def process_pdf():
     pdf_path, output_directory = file_entry.get(), output_entry.get()
     employees_cities = load_employees_cities(os.path.abspath(Path('excel_path').read_bytes()).decode('utf-8'))
     pdfregion = (98, 61, 312, 70)
-    pages_by_city, not_found_names = separate_pages_by_city(pdf_path, employees_cities, pdfregion)
+    pages_by_city, nfn_by_city = separate_pages_by_city(pdf_path, employees_cities, pdfregion)
     save_pages_to_pdf(pdf_path, pages_by_city, output_directory)
-    if not_found_names:
-        messagebox.showinfo("Nomes Não Encontrados", "Nomes não encontrados no PDF:\n\n" + "\n".join(f"• {name}" for name in not_found_names))
+    if nfn_by_city:
+        nfn_msg = []
+        i = 0
+        for city in nfn_by_city.keys():
+            nfn_msg.append(f"{city}\n")
+            for name in nfn_by_city[city]:
+                nfn_msg[i] += f"• {name}\n"
+            i += 1
+        messagebox.showinfo("Nomes Não Encontrados", "Nomes não encontrados no PDF:\n\n" + "\n"
+                            .join(f"{city}" for city in nfn_msg))
     messagebox.showinfo("Concluído", "Processo concluído com sucesso!")
     subprocess.Popen(f'explorer "{os.path.abspath(output_directory)}"', shell=True)
 
