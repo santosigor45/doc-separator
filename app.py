@@ -157,20 +157,29 @@ selected_output_directory = False
 # GUI setup
 root = ThemedTk(theme="breeze")
 root.title("Doc Separator")
-file_label = (ttk.Label(root, text="Arquivo PDF:")
-              .grid(row=0, column=0, padx=10, pady=10, sticky="w"))
-file_entry = (ttk.Entry(root, width=50)
-              .grid(row=0, column=1, padx=10, pady=10))
-file_button = (ttk.Button(root, text="Selecionar Arquivo", command=select_file)
-               .grid(row=0, column=2, padx=10, pady=10))
-output_label = (ttk.Label(root, text="Diretório de Saída:")
-                .grid(row=1, column=0, padx=10, pady=10, sticky="w"))
-output_entry = (ttk.Entry(root, width=50)
-                .grid(row=1, column=1, padx=10, pady=10))
-output_button = (ttk.Button(root, text="Selecionar Diretório", command=select_output_directory)
-                 .grid(row=1, column=2, padx=10, pady=10))
-regions_checkbox = (ttk.Checkbutton(root, text="Separar por regiões?")
-                    .grid(row=2, column=2, columnspan=1, padx=10, pady=10))
-process_button = (ttk.Button(root, text="Processar PDF", command=process_pdf)
-                  .grid(row=2, column=0, columnspan=3, padx=10, pady=10))
+
+file_label = ttk.Label(root, text="Arquivo PDF:")
+file_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+
+file_entry = ttk.Entry(root, width=50)
+file_entry.grid(row=0, column=1, padx=10, pady=10)
+
+file_button = ttk.Button(root, text="Selecionar Arquivo", command=select_file)
+file_button.grid(row=0, column=2, padx=10, pady=10)
+
+output_label = ttk.Label(root, text="Diretório de Saída:")
+output_label.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+
+output_entry = ttk.Entry(root, width=50)
+output_entry.grid(row=1, column=1, padx=10, pady=10)
+
+output_button = ttk.Button(root, text="Selecionar Diretório", command=select_output_directory)
+output_button.grid(row=1, column=2, padx=10, pady=10)
+
+regions_checkbox = ttk.Checkbutton(root, text="Separar por regiões?")
+regions_checkbox.grid(row=2, column=2, columnspan=1, padx=10, pady=10)
+
+process_button = ttk.Button(root, text="Processar PDF", command=process_pdf)
+process_button.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+
 root.mainloop()
