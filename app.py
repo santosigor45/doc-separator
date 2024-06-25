@@ -1,10 +1,4 @@
 import os
-import fitz
-import subprocess
-import numpy as np
-import pandas as pd
-from pathlib import Path
-from fuzzywuzzy import fuzz
 import tkinter as tk
 from tkinter import filedialog, ttk, messagebox
 from ttkthemes import ThemedTk
@@ -19,8 +13,11 @@ def replace_all(text, dic):
 
 def load_employees_cities(file_path):
     # Load employee and their associated city from file
+    from numpy import nan
+    from pandas import read_excel
+
     employees_cities = {}
-    excel_file = pd.read_excel(
+    excel_file = read_excel(
         io=file_path,
         sheet_name="GERAL",
         usecols=["FUNCIONÁRIO", "CIDADE", "SITUAÇÃO", "REGIÃO"],
@@ -28,7 +25,7 @@ def load_employees_cities(file_path):
     excel_file = excel_file[(excel_file['SITUAÇÃO'] == 'REGISTRADO')]
     excel_file = excel_file.drop('SITUAÇÃO', axis=1)
     excel_file = excel_file.drop(excel_file.index[0])
-    excel_file = excel_file.replace(np.nan, '', regex=True)
+    excel_file = excel_file.replace(nan, '', regex=True)
 
     lists = excel_file.values.tolist()
 
@@ -44,14 +41,16 @@ def load_employees_cities(file_path):
 
 def extract_text_from_pdf(pdf_path, region):
     # Extract text from specified region in PDF pages
-    pdf_document = fitz.open(pdf_path)
-    text_by_page = [page.get_text("text", clip=fitz.Rect(*region)).split("\n")[0] for page in pdf_document]
+    from fitz import open as fitz_open, Rect
+    pdf_document = fitz_open(pdf_path)
+    text_by_page = [page.get_text("text", clip=Rect(*region)).split("\n")[0] for page in pdf_document]
     pdf_document.close()
     return text_by_page
 
 
 def find_matching_employee_name(names, text):
     # Find the highest matching employee name in text
+    from fuzzywuzzy import fuzz
     max_ratio = 0
     matched_name = ""
     for name in names:
@@ -88,10 +87,11 @@ def separate_pages_by_city(pdf_path, employees_cities, pdfregion):
 
 def save_pages_to_pdf(pdf_path, pages_by_city, output_directory):
     # Save pages sorted by city to individual PDFs
+    from fitz import open as fitz_open
     for city, pages in pages_by_city.items():
         if pages:
             output_pdf_path = os.path.join(output_directory, f'{city.strip()}.pdf')
-            with fitz.open(pdf_path) as original_pdf, fitz.open() as pdf_document:
+            with fitz_open(pdf_path) as original_pdf, fitz_open() as pdf_document:
                 for page_num in pages:
                     pdf_document.insert_pdf(original_pdf, from_page=page_num, to_page=page_num)
 
@@ -128,6 +128,8 @@ def select_output_directory():
 
 def process_pdf():
     # Main processing function for PDF file
+    from pathlib import Path
+    from subprocess import Popen
     global selected_pdf, selected_output_directory
     if not selected_pdf or not selected_output_directory:
         messagebox.showwarning("Aviso", "Por favor, selecione o arquivo PDF e o diretório de saída.")
@@ -148,7 +150,7 @@ def process_pdf():
         messagebox.showinfo("Nomes Não Encontrados", "Nomes não encontrados no PDF:\n\n" + "\n"
                             .join(f"{city}" for city in nfn_msg))
     messagebox.showinfo("Concluído", "Processo concluído com sucesso!")
-    subprocess.Popen(f'explorer "{os.path.abspath(output_directory)}"', shell=True)
+    Popen(f'explorer "{os.path.abspath(output_directory)}"', shell=True)
 
 
 selected_pdf = False
