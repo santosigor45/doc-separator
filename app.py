@@ -131,6 +131,8 @@ def process_pdf():
     from pathlib import Path
     from subprocess import Popen
     global selected_pdf, selected_output_directory
+    root.config(cursor="watch")
+    root.update()
     if not selected_pdf or not selected_output_directory:
         messagebox.showwarning("Aviso", "Por favor, selecione o arquivo PDF e o diretório de saída.")
         return
@@ -149,6 +151,7 @@ def process_pdf():
             i += 1
         messagebox.showinfo("Nomes Não Encontrados", "Nomes não encontrados no PDF:\n\n" + "\n"
                             .join(f"{city}" for city in nfn_msg))
+    root.config(cursor="")
     messagebox.showinfo("Concluído", "Processo concluído com sucesso!")
     Popen(f'explorer "{os.path.abspath(output_directory)}"', shell=True)
 
