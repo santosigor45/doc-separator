@@ -24,7 +24,6 @@ def load_employees_cities(file_path):
     )
     excel_file = excel_file[(excel_file['SITUAÇÃO'] == 'REGISTRADO')]
     excel_file = excel_file.drop('SITUAÇÃO', axis=1)
-    excel_file = excel_file.drop(excel_file.index[0])
     excel_file = excel_file.replace(nan, '', regex=True)
 
     lists = excel_file.values.tolist()
