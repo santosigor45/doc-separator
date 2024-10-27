@@ -137,18 +137,22 @@ def process_pdf():
         return
     pdf_path, output_directory = file_entry.get(), output_entry.get()
     employees_cities = load_employees_cities(os.path.abspath(Path('excel_path').read_bytes()).decode('utf-8'))
-    pdfregion = (98, 61, 312, 70)
+    # pdfregion = (98, 61, 312, 70)  # old payslip size
+    pdfregion = (84, 48, 360, 55)  # new payslip size
     pages_by_city, nfn_by_city = separate_pages_by_city(pdf_path, employees_cities, pdfregion)
     save_pages_to_pdf(pdf_path, pages_by_city, output_directory)
     if nfn_by_city:
         nfn_msg = []
         i = 0
         for city in nfn_by_city.keys():
-            nfn_msg.append(f"{city}\n")
-            for name in nfn_by_city[city]:
-                nfn_msg[i] += f"• {name}\n"
+            if len(nfn_by_city[city]) > 0:
+                nfn_msg.append(f"{city}\n")
+                for name in nfn_by_city[city]:
+                    nfn_msg[i] += f"• {name}\n"
+            else:
+                i -= 1
             i += 1
-        messagebox.showinfo("Nomes Não Encontrados", "Nomes não encontrados no PDF:\n\n" + "\n"
+        messagebox.showinfo("Nomes Não Encontrados", "Estes nomes não foram encontrados no PDF:\n\n" + "\n"
                             .join(f"{city}" for city in nfn_msg))
     root.config(cursor="")
     messagebox.showinfo("Concluído", "Processo concluído com sucesso!")
