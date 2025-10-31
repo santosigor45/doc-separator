@@ -1,0 +1,15 @@
+{
+  "parallelism": 0,
+  "regions": [
+    {
+      "name": "Region1",
+      "pageScope": "all",
+      "rectangle": {
+        "left": 84,
+        "top": 46,
+        "right": 390,
+        "bottom": 58
+      }
+    }
+  ]
+}
